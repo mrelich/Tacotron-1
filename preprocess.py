@@ -216,15 +216,57 @@ def preprocess_vctk():
 
         writer.close()
 
+def preprocess_mine(fname):
+
+    # Input file
+    infile = open(fname,'r')
+
+    # Holders
+    texts       = []
+    text_lens   = []
+    mels        = []
+    stfts       = []
+    speech_lens = []
+    
+    # Format is wav file | text
+    for line in infile:
+        sl = line.split('|')
+        if len(sl) != 2:
+            break
+        wav_file = sl[0].strip()
+        raw_text = sl[1].strip()
+
+        text = [process_char(c) for c in list(raw_text)]
+        mel, stft = audio.process_wav(wav_file, sr=16000)
+
+        texts.append(np.array(text))
+        text_lens.append(len(text))
+        mels.append(mel)
+        stfts.append(stft)
+        speech_lens.append(mel.shape[0])
+
+    save_to_npy(texts, text_lens, mels, stfts, speech_lens, 'mine')
+
+    # save vocabulary
+    save_vocab('mine')
+        
+    
 if __name__ == '__main__':
 
     # not used for now
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', '-d', type=str, default='all')
+    parser.add_argument('--dataset', '-d', dest='dataset', type=str, default='all')
+    parser.add_argument('--datasetpath',dest='datasetpath',type=str, default='dummy/')
     args = parser.parse_args()
 
-    preprocess_arctic()
-    if os.path.exists('data/nancy'):
-        preprocess_nancy()
+    if args.dataset == 'all':
+        preprocess_arctic()
+        if os.path.exists('data/nancy'):
+            preprocess_nancy()
 
-
+    if args.dataset == 'mine':
+        if os.path.exists(args.datasetpath):
+            preprocess_mine(args.datasetpath)
+        else:
+            print("specify the path to dataset for 'mine'")
+            
