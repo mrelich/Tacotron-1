@@ -227,6 +227,9 @@ def preprocess_mine(fname):
     mels        = []
     stfts       = []
     speech_lens = []
+
+    total = 0
+    selected = 0
     
     # Format is wav file | text
     for line in infile:
@@ -238,19 +241,26 @@ def preprocess_mine(fname):
 
         text = [process_char(c) for c in list(raw_text)]
         mel, stft = audio.process_wav(wav_file, sr=16000)
+        total += 1
 
-        if mel.shape[0] < 350 // audio.r:
+        if mel.shape[0] <= 500 // audio.r:
             texts.append(np.array(text))
             text_lens.append(len(text))
             mels.append(mel)
             stfts.append(stft)
             speech_lens.append(mel.shape[0])
-
+            selected += 1
+        else:
+            print(wav_file)
+            
     save_to_npy(texts, text_lens, mels, stfts, speech_lens, 'mine')
 
     # save vocabulary
     save_vocab('mine')
-        
+
+    print("Total: ", total)
+    print("Selected: ", selected)
+    print("Pct: ", selected / float(total))
     
 if __name__ == '__main__':
 
