@@ -239,11 +239,12 @@ def preprocess_mine(fname):
         text = [process_char(c) for c in list(raw_text)]
         mel, stft = audio.process_wav(wav_file, sr=16000)
 
-        texts.append(np.array(text))
-        text_lens.append(len(text))
-        mels.append(mel)
-        stfts.append(stft)
-        speech_lens.append(mel.shape[0])
+        if mel.shape[0] < 350 // audio.r:
+            texts.append(np.array(text))
+            text_lens.append(len(text))
+            mels.append(mel)
+            stfts.append(stft)
+            speech_lens.append(mel.shape[0])
 
     save_to_npy(texts, text_lens, mels, stfts, speech_lens, 'mine')
 
