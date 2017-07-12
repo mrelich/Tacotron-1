@@ -16,10 +16,14 @@ import argparse
 mini = False
 DATA_DIR = 'data/'
 
+# Initialize the special characters and
+# setup the dictionary
+specials = ['<pad>', '<GO>', '<EOS>']
 vocab = {}
 ivocab = {}
-vocab['<pad>'] = 0
-ivocab[0] = '<pad>'
+for i in range(len(specials)):
+    vocab[specials[i]] = i
+    ivocab[i] = specials[i]
 
 def save_vocab(name, sr=16000):
     global vocab
@@ -162,7 +166,7 @@ def preprocess_arctic():
             text = ' '.join(spl[2:-1])
             text = text[1:-1]
             text = [process_char(c) for c in list(text)]
-
+        
             wav_file = DATA_DIR + 'arctic/wav/{}.wav'.format(id)
 
             mel, stft = audio.process_wav(wav_file, sr=16000)
@@ -240,6 +244,7 @@ def preprocess_mine(fname):
         raw_text = sl[1].strip()
 
         text = [process_char(c) for c in list(raw_text)]
+        text = [vocab['<GO>']] + text + [vocab['<EOS>']]
         mel, stft = audio.process_wav(wav_file, sr=16000)
         total += 1
 
