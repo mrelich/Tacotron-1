@@ -15,11 +15,12 @@ def test(model, config, prompt_file):
     sr = 24000 if 'blizzard' in config.data_path else 16000
     meta = data_input.load_meta(config.data_path)
     config.r = audio.r
-    ivocab = meta['vocab']
+    ivocab = meta['ivocab']
+    vocab  = meta['vocab']
     config.vocab_size = len(ivocab)
 
     with tf.device('/cpu:0'):
-        batch_inputs, config.num_prompts = data_input.load_prompts(prompt_file, ivocab)
+        batch_inputs, config.num_prompts = data_input.load_prompts(prompt_file, vocab)
 
     with tf.Session() as sess:
         stft_mean, stft_std = \
@@ -44,6 +45,7 @@ def test(model, config, prompt_file):
         saver.restore(sess, latest_ckpt)
 
         try:
+            counter = 0
             while(True):
                 out = sess.run([
                     model.output,
@@ -57,12 +59,13 @@ def test(model, config, prompt_file):
                     # store a sample to listen to
                     text = ''.join([ivocab[w] for w in words])
                     attention_plot = data_input.generate_attention_plot(align)
-                    sample = audio.invert_spectrogram(out*stft_std + stft_mean)
+                    sample = audio.invert_spectrogram(out*stft_std + stft_mean,('test_%i_zeros.wav' % counter))
                     merged = sess.run(tf.summary.merge(
-                         [tf.summary.audio(text, sample[None, :], sr),
-                          tf.summary.image(text, attention_plot)]
+                         [tf.summary.audio(('test_%i' % counter), sample[None, :], sr),
+                          tf.summary.image(('test_%i' % counter), attention_plot)]
                     ))
                     train_writer.add_summary(merged, 0)
+                    counter += 1
         except tf.errors.OutOfRangeError:
             coord.request_stop()
             coord.join(threads)

@@ -18,7 +18,7 @@ DATA_DIR = 'data/'
 
 # Initialize the special characters and
 # setup the dictionary
-specials = ['<pad>', '<GO>', '<EOS>']
+specials = ['<pad>']
 vocab = {}
 ivocab = {}
 for i in range(len(specials)):
@@ -222,6 +222,8 @@ def preprocess_vctk():
 
 def preprocess_mine(fname):
 
+    import pydub
+    
     # Input file
     infile = open(fname,'r')
 
@@ -234,6 +236,7 @@ def preprocess_mine(fname):
 
     total = 0
     selected = 0
+    dur = 0
     
     # Format is wav file | text
     for line in infile:
@@ -244,7 +247,6 @@ def preprocess_mine(fname):
         raw_text = sl[1].strip()
 
         text = [process_char(c) for c in list(raw_text)]
-        text = [vocab['<GO>']] + text + [vocab['<EOS>']]
         mel, stft = audio.process_wav(wav_file, sr=16000)
         total += 1
 
@@ -255,17 +257,19 @@ def preprocess_mine(fname):
             stfts.append(stft)
             speech_lens.append(mel.shape[0])
             selected += 1
+            dur += (pydub.AudioSegment.from_wav(wav_file)).duration_seconds
         else:
             print(wav_file)
 
-    save_to_npy(texts, text_lens, mels, stfts, speech_lens, 'single')
+    save_to_npy(texts, text_lens, mels, stfts, speech_lens, 'mine')
 
     # save vocabulary
-    save_vocab('single')
+    save_vocab('mine')
 
     print("Total: ", total)
     print("Selected: ", selected)
     print("Pct: ", selected / float(total))
+    print("Total duration: %.2f hours" % (dur / 3600))
     
 if __name__ == '__main__':
 

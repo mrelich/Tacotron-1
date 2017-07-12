@@ -22,7 +22,6 @@ def reshape_frames(signal, forward=True):
         pad_length = signal.shape[1] % (4*r)
         pad_length = 4*r - pad_length if pad_length > 0 else 0
         signal = np.pad(signal, ((0,0), (0,pad_length)), 'constant', constant_values=0)
-
         split_points = np.arange(4*r, signal.shape[1]+1, step=4*r)
         splits = np.split(signal, split_points, axis=1)
         new_signal = np.concatenate([np.concatenate(np.split(s, r, axis=1), axis=0) for s in splits[:-1]], axis=1)
@@ -36,6 +35,21 @@ def reshape_frames(signal, forward=True):
         return new_signal
         
 
+# I'm wondering if we need a 'go' and 'eos' frame in the audio so that model
+# knows when to stop... The paper does mention the go frame, but not the eos
+# Let's test both
+def prepare_frames(signal):
+
+    # frames
+    go = np.zeros(signal.shape[1],dtype=np.float32)
+    eos = np.ones(signal.shape[1],dtype=np.float32)
+
+    # insert them
+    signal = np.insert(signal, 0, go, axis=0)
+    signal = np.insert(signal, signal.shape[0], eos, axis=0)
+
+    return signal
+    
 def process_wav(fname, n_fft=2048, win_length=1200, hop_length=300, sr=16000):
     wave, sr = librosa.load(fname, mono=True, sr=sr)
 
@@ -44,10 +58,13 @@ def process_wav(fname, n_fft=2048, win_length=1200, hop_length=300, sr=16000):
 
     stft = librosa.stft(wave, n_fft=n_fft, win_length=win_length, hop_length=hop_length)
     mel = librosa.feature.melspectrogram(S=stft, n_mels=80)
-
+    
     stft = np.log(np.abs(stft))
     mel = np.log(np.abs(mel))
 
+    stft = prepare_frames(stft)
+    mel  = prepare_frames(mel)
+    
     stft = reshape_frames(stft)
     mel = reshape_frames(mel)
 

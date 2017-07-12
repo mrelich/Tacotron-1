@@ -85,8 +85,8 @@ def pad(text, max_len, pad_val):
 def load_prompts(prompt_file, vocab):
     with open(prompt_file, 'r') as pf:
         lines = pf.readlines() 
-        text = [ [vocab['<GO>']] + [vocab[w] for w in l.strip() if w in vocab] + [vocab['<EOS>']] for l in lines]
-        text_length = np.array([len(l) for l in lines])
+        text = [ [vocab[w] for w in l.strip() if w in vocab] for l in lines]
+        text_length = np.array([len(l)+2 for l in lines])
         text = pad(text, np.max(text_length), 0)
         inputs = tf.train.slice_input_producer([text, text_length], num_epochs=1)
         inputs = {'text': inputs[0], 'text_length': inputs[1]}
