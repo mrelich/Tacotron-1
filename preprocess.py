@@ -257,7 +257,7 @@ def preprocess_mine(fname):
             selected += 1
         else:
             print(wav_file)
-            
+
     save_to_npy(texts, text_lens, mels, stfts, speech_lens, 'mine')
 
     # save vocabulary
@@ -281,6 +281,9 @@ if __name__ == '__main__':
             preprocess_nancy()
 
     if args.dataset == 'mine':
+        # make sure output directory exists
+        if not os.path.exists('data/mine'):
+            os.makedirs('data/mine')
         if os.path.exists(args.datasetpath):
             preprocess_mine(args.datasetpath)
         else:
