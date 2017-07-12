@@ -13,7 +13,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 BATCH_SIZE = 32
-SHUFFLE_BUFFER_SIZE = 10000
+SHUFFLE_BUFFER_SIZE = 1000
 
 def build_dataset(sess, inputs):
     placeholders = []
