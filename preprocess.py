@@ -30,7 +30,7 @@ def save_vocab(name, sr=16000):
     global ivocab
     print('saving vocab')
     with open('data/%s/meta.pkl' % name, 'wb') as vf:
-        pkl.dump({'vocab': ivocab, 'r': audio.r, 'sr': sr}, vf)
+        pkl.dump({'vocab': vocab, 'ivocab': ivocab, 'r': audio.r, 'sr': sr}, vf)
 
     vocab = {}
     ivocab = {}
@@ -258,10 +258,10 @@ def preprocess_mine(fname):
         else:
             print(wav_file)
 
-    save_to_npy(texts, text_lens, mels, stfts, speech_lens, 'mine')
+    save_to_npy(texts, text_lens, mels, stfts, speech_lens, 'single')
 
     # save vocabulary
-    save_vocab('mine')
+    save_vocab('single')
 
     print("Total: ", total)
     print("Selected: ", selected)

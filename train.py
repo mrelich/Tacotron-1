@@ -18,9 +18,10 @@ def train(model, config, num_steps=1000000):
     sr = 24000 if 'blizzard' in config.data_path else 16000
     meta = data_input.load_meta(config.data_path)
     config.r = meta['r']
-    ivocab = meta['vocab']
+    ivocab = meta['ivocab']
     config.vocab_size = len(ivocab)
-
+    config.vocab = meta['vocab']
+    
     with tf.Session() as sess:
 
         inputs, stft_mean, stft_std = data_input.load_from_npy(config.data_path)
@@ -73,6 +74,16 @@ def train(model, config, num_steps=1000000):
             if global_step % 1000 == 0:
                 lr *= annealing_rate
 
+            # Step decreases
+            if global_step == 20000:
+                lr *= 0.5
+
+            if global_step == 50000:
+                lr *= 0.5
+
+            if global_step > 50000 and global_step % 10000 == 0:
+                lr *= 0.8
+                
             if global_step % SAVE_EVERY == 0 and global_step != 0:
 
                 print('saving weights')
